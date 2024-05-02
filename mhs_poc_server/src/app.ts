@@ -3,7 +3,7 @@ import { getOperationDesctiptionForIndexing, getParagraphsForIndexing } from "./
 import { index, knnSearch, prepareIndex } from './elastic.js';
 import { getAnswer } from './openai.js';
 
-const port = 3000;
+const port = process.env['PORT'] ? parseInt(process.env['PORT']) : 3000;
 const app = express();
 
 app.use(express.static('public'));
