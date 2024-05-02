@@ -1,0 +1,60 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --foreground-rgb: 0, 0, 0;
+  --background-start-rgb: 214, 219, 220;
+  --background-end-rgb: 255, 255, 255;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --foreground-rgb: 255, 255, 255;
+    --background-start-rgb: 0, 0, 0;
+    --background-end-rgb: 0, 0, 0;
+  }
+}
+
+body {
+  color: rgb(var(--foreground-rgb));
+  background: linear-gradient(
+      to bottom,
+      transparent,
+      rgb(var(--background-end-rgb))
+    )
+    rgb(var(--background-start-rgb));
+}
+
+.result-container {
+  padding: 20px;
+  background-color: rgba(255, 255, 255, 0.4);
+  margin: 10px;
+}
+
+.result-title {
+  font-size: 20px;
+  padding-bottom: 10px;
+}
+
+input, select {
+  padding: 2px;
+  margin: 4px;
+}
+
+label {
+  margin: 4px;
+}
+
+pre {
+  max-width: 500px;
+  overflow: auto;
+  white-space: break-spaces;
+  margin: 25px;
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
