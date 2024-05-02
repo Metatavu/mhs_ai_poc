@@ -2,7 +2,7 @@ import express from 'express';
 import { getOperationDesctiptionForIndexing, getParagraphsForIndexing } from "./mhs-api.js";
 import { index, knnSearch, prepareIndex } from './elastic.js';
 import { getAnswer } from './openai.js';
-const port = 3000;
+const port = process.env['PORT'] ? parseInt(process.env['PORT']) : 3000;
 const app = express();
 app.use(express.static('public'));
 app.use(express.json());
@@ -37,11 +37,18 @@ app.post('/articles/search', async (req, res) => {
 app.post('/articles/answer', async (req, res) => {
     const body = req.body;
     const data = await knnSearch(body.query, body.lang);
-    const nOfHits = Math.min(data.hits.length, body.accuracy);
+    const accurateHits = data.hits.filter(hit => hit._score >= body.accuracy);
+    if (!accurateHits.length) {
+        res.send({ error: 'No accurate hits found, try lowering the accuracy parameter and try again.' });
+        return;
+    }
+    const nOfHits = Math.min(accurateHits.length, 5);
     let context = [];
     for (let i = 0; i < nOfHits; i++) {
-        context.push(data.hits[i]._source);
+        console.log(`Adding context with score: ${accurateHits[i]._score}`);
+        context.push(accurateHits[i]._source);
     }
+    console.log(`Selected ${context.length} paragraphs as context`);
     const answer = await getAnswer(context.map(c => c.content).join("\n"), body.query, body.model, body.lang);
     res.send({ answer, sources: context });
 });

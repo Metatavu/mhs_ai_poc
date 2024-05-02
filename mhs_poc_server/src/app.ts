@@ -43,11 +43,18 @@ app.post('/articles/search', async (req: Request<any, any, {query: string, lang:
 app.post('/articles/answer', async (req: Request<any, any, {query: string, accuracy: number, lang: string, model: string}>, res) => {
   const body = req.body;
   const data = await knnSearch(body.query, body.lang);
-  const nOfHits = Math.min(data.hits.length, body.accuracy);
+  const accurateHits = data.hits.filter(hit => hit._score >= body.accuracy);
+  if (!accurateHits.length) {
+    res.send({error: 'No accurate hits found, try lowering the accuracy parameter and try again.'});
+    return;
+  }
+  const nOfHits = Math.min(accurateHits.length, 5);
   let context = [];
   for (let i = 0; i < nOfHits; i++) {
-    context.push((data.hits[i]._source as any));
+    console.log(`Adding context with score: ${accurateHits[i]._score}`);
+    context.push((accurateHits[i]._source as any));
   }
+  console.log(`Selected ${context.length} paragraphs as context`);
   const answer = await getAnswer(context.map(c => c.content).join("\n"), body.query, body.model, body.lang);
   res.send({ answer, sources: context });
 });

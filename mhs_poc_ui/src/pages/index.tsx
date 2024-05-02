@@ -17,6 +17,7 @@ export default function Home() {
   const [model, setModel] = useState("gpt-4-turbo");
   const [query, setQuery] = useState("");
   const [lang, setLang] = useState("fi");
+  const [accuracy, setAccuracy] = useState(0.77);
   const [loading, setLoading] = useState(false);
   const [answer, setAnswer] = useState("");
   const [sources, setSources] = useState<SourceItem[]>([]);
@@ -31,7 +32,7 @@ export default function Home() {
       lang: lang
     }
     if (action === "answer") {
-      body["accuracy"] = 1;
+      body["accuracy"] = accuracy;
       body["model"] = model;
     }
     fetch(url, {
@@ -42,6 +43,10 @@ export default function Home() {
     .then(res => res.json())
     .then(data => {
       if (action == "answer") {
+        if (data.error) {
+          alert(data.error);
+          return;
+        }
         setAnswer(data.answer[0].message.content);
         setSources(data.sources.map((hit: any) => {
           return {
@@ -72,6 +77,7 @@ export default function Home() {
         <div className="flex flex-col">
           <label htmlFor="action-input">Toiminto: </label>
           { action === "answer" && <label htmlFor="model-input">GPT-malli: </label> }
+          { action === "answer" && <label htmlFor="accuracy-input">Tarkkuus (0 - 1): </label> }
           <label htmlFor="lang-input">Kieli: </label>
           <label htmlFor="query-input">Hae / kysy: </label>
         </div>
@@ -86,6 +92,9 @@ export default function Home() {
             <option value="gpt-4">gpt-4</option>
             <option value="gpt-3.5-turbo">gpt-3.5-turbo</option>
           </select> }
+          { action === "answer" && 
+            <input id="accuracy-input" value={accuracy} onChange={e => setAccuracy(Number(e.target.value))} step={0.01} type="number" /> 
+          }
           <select id="lang-input" value={lang} onChange={e => setLang(e.target.value)}>
             <option value="fi">Suomi</option>
             <option value="sv">Ruotsi</option>
