@@ -26,7 +26,7 @@ Instead of ELASTIC_USER and ELASTIC_PASSWORD, you can provide value for ELASTIC_
 
 Navigate to mhs_poc_server folder and run command
 ```
-npm start
+npm run start-local
 ```
 
 Your server should now be running at port 3000. You can verify this by navigating to localhost:3000

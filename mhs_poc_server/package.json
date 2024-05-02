@@ -4,7 +4,8 @@
   "description": "",
   "main": "app.js",
   "scripts": {
-    "start": "tsc && node --env-file=.env dist/app.js",
+    "start": "node dist/app.js",
+    "start-local": "tsc && node --env-file=.env dist/app.js",
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "tsc",
     "build-client": "./node_modules/.bin/openapi-generator-cli generate -i https://api.metsanhoidonsuositukset.fi/v2/docs/swagger.yaml --skip-validate-spec -o ./generated/client -c openapi-generator-config.json -g typescript-fetch"
