@@ -1,6 +1,6 @@
 import Image from "next/image";
 import { Inter } from "next/font/google";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { title } from "process";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -8,7 +8,8 @@ const inter = Inter({ subsets: ["latin"] });
 interface SourceItem {
   title: string,
   url: string,
-  content: string
+  content: string,
+  _score: number
 }
 
 export default function Home() {
@@ -20,7 +21,54 @@ export default function Home() {
   const [accuracy, setAccuracy] = useState(0.77);
   const [loading, setLoading] = useState(false);
   const [answer, setAnswer] = useState("");
+  const [answerToken, setAnswerToken] = useState("");
   const [sources, setSources] = useState<SourceItem[]>([]);
+  const intervalId = useRef<any>(null);
+
+  function pollAnswer() {
+    if (intervalId.current) {
+      clearInterval(intervalId.current);
+    }
+    if (answerToken) {
+      intervalId.current = setInterval(() => {
+        fetch(`articles/answerstatus/${answerToken}`, {
+          method: "GET",
+        })
+        .then(res => res.json())
+        .then(data => {
+          if (data.status && data.status == "PENDING") {
+            return;
+          }
+          clearInterval(intervalId.current);
+          setAnswer(data.answer[0].message.content);
+          setSources(data.sources.map((hit: any) => {
+            return {
+              title: hit.articleTitle,
+              content: hit.content,
+              url: hit.articleUrl,
+              _score: hit._score
+            }
+          }));
+          setLoading(false);
+        })
+        .catch(() => {
+          clearInterval(intervalId.current);
+          setLoading(false);
+          alert("Error creating answer");
+        });
+      }, 1000);
+    }
+  }
+
+  useEffect(() => {
+    if (answerToken) {
+      pollAnswer();
+    } else {
+      if (intervalId.current) {
+        clearInterval(intervalId.current);
+      }
+    }
+  }, [answerToken]);
 
   function sendRequest() {
     setLoading(true);
@@ -44,29 +92,24 @@ export default function Home() {
     .then(data => {
       if (action == "answer") {
         if (data.error) {
+          setLoading(false);
           alert(data.error);
           return;
         }
-        setAnswer(data.answer[0].message.content);
-        setSources(data.sources.map((hit: any) => {
-          return {
-            title: hit.articleTitle,
-            content: hit.content,
-            url: hit.articleUrl,
-          }
-        }));
+        setAnswerToken(data.token);
       } else {
         setSources(data.hits.map((hit: any) => {
           return {
             title: hit._source.articleTitle,
             content: hit._source.content,
             url: hit._source.articleUrl,
+            _score: hit._score
           }
         }));
+        setLoading(false);
       }
-
     })
-    .finally(() => setLoading(false));
+    .catch(() => setLoading(false));
   }
 
   return (
@@ -126,6 +169,7 @@ export default function Home() {
                   <h4 className="result-title">{source.title}</h4>
                 </a>
               </div>
+              <div><small>{source._score}</small></div>
               <div dangerouslySetInnerHTML={{__html: source.content}}></div>
             </div>
           );
