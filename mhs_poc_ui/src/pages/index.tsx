@@ -96,7 +96,7 @@ export default function Home() {
           alert(data.error);
           return;
         }
-        setAnswerToken(data.token);
+        setAnswerToken(encodeURIComponent(data.token));
       } else {
         setSources(data.hits.map((hit: any) => {
           return {
