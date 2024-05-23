@@ -134,6 +134,7 @@ export default function Home() {
             <option value="gpt-4-turbo">gpt-4-turbo</option>
             <option value="gpt-4">gpt-4</option>
             <option value="gpt-3.5-turbo">gpt-3.5-turbo</option>
+            <option value="gpt-4o">gpt-4o</option>
           </select> }
           { action === "answer" && 
             <input id="accuracy-input" value={accuracy} onChange={e => setAccuracy(Number(e.target.value))} step={0.01} type="number" /> 
